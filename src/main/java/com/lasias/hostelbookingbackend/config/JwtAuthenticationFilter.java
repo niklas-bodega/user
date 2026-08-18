@@ -27,7 +27,7 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final AppUserRepository appUserRepository;
+    //private final AppUserRepository appUserRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -52,6 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String email;
         final LocalDateTime issuedAt;
 
+        /*
         try {
             email = jwtService.extractEmail(jwt);
             issuedAt = jwtService.extractIAT(jwt);
@@ -81,6 +82,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.error("Invalid JWT token received: {}", e.getMessage());
         }
+
+         */
         filterChain.doFilter(request, response);
     }
 }
