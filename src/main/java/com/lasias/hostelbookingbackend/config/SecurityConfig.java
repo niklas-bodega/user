@@ -42,8 +42,7 @@ public class SecurityConfig {
                             "/api/auth/**",
                             "/api/auth/login**",
                             "/oauth2/**",
-                            "/api/user/register",
-                            "/api/rooms/**"
+                            "/api/user/register"
                     ).permitAll();
 
                     auth.anyRequest().authenticated();

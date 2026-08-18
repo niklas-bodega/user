@@ -62,7 +62,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <!-- Test database -->

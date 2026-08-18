@@ -53,6 +53,10 @@ public class JwtService {
                 .build();
     }
 
+    public String createBearerToken(String jwt){
+        return "Bearer " + jwt;
+    }
+
     public LocalDateTime extractIAT(String jwt) {
         return LocalDateTime.ofInstant(Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build().parseClaimsJws(jwt).getBody().getIssuedAt().toInstant(), java.time.ZoneId.systemDefault());
     }

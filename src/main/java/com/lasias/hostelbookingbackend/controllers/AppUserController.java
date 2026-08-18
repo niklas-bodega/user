@@ -39,7 +39,6 @@ public class AppUserController {
 
     @GetMapping
     public ResponseEntity<UserInformationDTO> provideUserDetails(@AuthenticationPrincipal AppUser user) {
-
         return ResponseEntity.ok(appUserService.provideUserDetails(user));
     }
 

@@ -1,4 +1,5 @@
 package com.lasias.hostelbookingbackend.services;
+
 import com.lasias.hostelbookingbackend.dtos.AuthRequestDTO;
 import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
 import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,11 +30,12 @@ public class AppUserService {
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RestClient bookingRestClient;
 
 
     // register user through OAuth2 providers
-    public void register(String name, String email, String authProviderId,AuthProvider authProvider){
-        if (appUserRepository.findByEmail(email).isPresent()){
+    public void register(String name, String email, String authProviderId, AuthProvider authProvider) {
+        if (appUserRepository.findByEmail(email).isPresent()) {
             log.error("Registration failed, email already in use:");
             throw new IllegalArgumentException("Email already in use");
         }
@@ -47,8 +50,8 @@ public class AppUserService {
     }
 
     // register user through user information from the frontend.
-    public ResponseCookie register(RegisterNewUserDTO newUser){
-        if (appUserRepository.findByEmail(newUser.email()).isPresent()){
+    public ResponseCookie register(RegisterNewUserDTO newUser) {
+        if (appUserRepository.findByEmail(newUser.email()).isPresent()) {
             log.error("Registration failed, email already in use:");
             throw new IllegalArgumentException("Email already in use");
         }
@@ -60,39 +63,37 @@ public class AppUserService {
         appUserRepository.save(user);
         log.info("New user registered: {}", user.getEmail());
 
-        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(),false);
-        //TODO remove
-        System.out.println(cookie.toString());
+        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(), false);
         return cookie;
     }
 
 
     // login user without OAuth2 providers
     public ResponseCookie loginUser(AuthRequestDTO request) {
-        if (request == null){
+        if (request == null) {
             log.error("Local login request is null whe loginUser is called");
             throw new IllegalArgumentException("Request is null");
         }
         String email = request.email();
         String password = request.password();
-        if (email == null || password == null){
+        if (email == null || password == null) {
             log.error("Login failed, email and password are required");
             throw new IllegalArgumentException("Email and password are required");
         }
         AppUser user = appUserRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found."));
-        if (validPassword(password, user.getPassword())){
+        if (validPassword(password, user.getPassword())) {
             log.info("User logged in: {}", user.getEmail());
-            return jwtService.createJwtCookie(user.getEmail(),false);
+            return jwtService.createJwtCookie(user.getEmail(), false);
         }
         log.error("Login failed, invalid credentials");
         throw new IllegalArgumentException("Invalid credentials");
     }
 
-    public boolean validPassword(String password, String hashedPassword){
+    public boolean validPassword(String password, String hashedPassword) {
         return passwordEncoder.matches(password, hashedPassword);
     }
 
-    public boolean passwordMatchesCriteria(String password){
+    public boolean passwordMatchesCriteria(String password) {
         String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
         return password.matches(regex);
     }
@@ -104,32 +105,32 @@ public class AppUserService {
     }
 
 
-    public String hashPassword(String password){
+    public String hashPassword(String password) {
         return passwordEncoder.encode(password);
     }
 
     public ResponseCookie updateUser(UpdateUserDTO updateUserDTO, AppUser user) {
         ResponseCookie newCookie = null;
-        if (user == null){
+        if (user == null) {
             log.error("User not found when updating user");
             throw new IllegalArgumentException("User not found");
         }
-        if (updateUserDTO.name() != null){
+        if (updateUserDTO.name() != null) {
             String newName = updateUserDTO.name();
-            if (newName.length() >= 3 && newName.length() <= 50){
-            user.setName(updateUserDTO.name());
-            }else {
+            if (newName.length() >= 3 && newName.length() <= 50) {
+                user.setName(updateUserDTO.name());
+            } else {
                 throw new IllegalArgumentException("Name length must be between 3 and 50");
             }
         }
-        if (updateUserDTO.email() != null){
+        if (updateUserDTO.email() != null) {
             String newEmail = updateUserDTO.email();
-            if(!isValidEmail(newEmail)){
+            if (!isValidEmail(newEmail)) {
                 log.error("Invalid email format");
                 throw new IllegalArgumentException("Invalid email format");
             }
             user.setEmail(newEmail);
-            newCookie = jwtService.createJwtCookie(newEmail,false);
+            newCookie = jwtService.createJwtCookie(newEmail, false);
         }
         if (updateUserDTO.password() != null) {
             // if the user is updating their password, check if the current password is correct. If there is no current password, the user is updating their password for the first time.
@@ -149,73 +150,72 @@ public class AppUserService {
 
 
     public void deleteMe(AppUser user) {
-        if (user == null){
+        if (user == null) {
             log.error("Unable to delete user, User not found");
             throw new IllegalArgumentException("Unable to delete user, User not found");
         }
 
 
-
         //todo anropa booking mikroservice gällande om det finns aktiva bokningar
-        /*
-        if(bookingRepository.existsByUser_IdAndStatusInAndCheckOutDateAfter(
-                user.getId(),
-                List.of(
-                        BookingStatus.CONFIRMED,
-                        BookingStatus.AWAITING_CONFIRMATION
-                ),
-                LocalDateTime.now()
-        )){
+        // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
+        boolean userHasActiveBooking = Boolean.TRUE.equals(bookingRestClient
+                .get()
+                .uri("/api/bookings/user-has-upcomming-bookings/{id}", user.getId())
+                .header("Authorization", jwtService.createBearerToken(user.getEmail()))
+                .retrieve()
+                .body(boolean.class));
+
+        if (userHasActiveBooking) {
             log.error("Unable to delete user, User has bookings");
             throw new IllegalArgumentException("Unable to delete user, User has bookings");
         }
-*/
 
-        //todo anropa bookingservice för att rensa bort användarid från historiska bokningar.
 
-        /*
-        List<BookingEntity> bookings = bookingRepository
-                .findByUser(user)
-                .stream()
-                .peek(booking -> booking.setUser(null))
-                .toList();
 
-        bookingRepository.saveAll(bookings);
+        // //todo anropa bookingservice för att rensa bort användarid från historiska bokningar.
+        // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
+        bookingRestClient.get()
+                .uri("/api/bookings/remove-userid-from-passed-bookings/{id}", user.getId())
+                .header("Authorization", jwtService.createBearerToken(user.getEmail()))
+                .retrieve()
+                .body(boolean.class);
 
-         */
 
-        log.info("User deleted: {}", user.getEmail());
-        appUserRepository.delete(user);
+
+
+            log.info("User deleted: {}", user.getEmail());
+            appUserRepository.delete(user);
+
     }
 
     public UserInformationDTO provideUserDetails(AppUser user) {
-        if (user == null){
+        if (user == null) {
             log.error("User not found when retrieving user details");
             throw new IllegalArgumentException("User not found");
         }
         log.info("User details retrieved: {}", user.getEmail());
-        return new UserInformationDTO(user.getEmail(),user.getName(),user.getRole(),user.getCreatedAt(),(user.getPassword() != null));
+        return new UserInformationDTO(user.getEmail(), user.getName(), user.getRole(), user.getCreatedAt(), (user.getPassword() != null));
     }
 
     public ResponseEntity<String> logout(AppUser user) {
-        if (user == null){
+        if (user == null) {
             log.error("User not found when logging out");
             throw new IllegalArgumentException("User not found");
         }
-        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(),true);
+        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(), true);
 
         SecurityContextHolder.clearContext();
         log.info("User logged out: {}", user.getEmail());
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,cookie.toString()).build();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
     }
 
     public ResponseEntity<String> logoutAllDevices(AppUser user) {
         user.setDenyTokensPriorTo(LocalDateTime.now(ZoneId.of("Europe/Copenhagen")).truncatedTo(ChronoUnit.SECONDS));
         appUserRepository.save(user);
-        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(),true);
+        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(), true);
 
         SecurityContextHolder.clearContext();
         log.info("User logged out all devices: {} and tokens issued previously will be rejected.", user.getEmail());
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,cookie.toString()).build();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
     }
 }
