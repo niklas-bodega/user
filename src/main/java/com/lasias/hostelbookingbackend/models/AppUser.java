@@ -2,8 +2,7 @@ package com.lasias.hostelbookingbackend.models;
 
 import com.lasias.hostelbookingbackend.enums.AuthProvider;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -23,7 +22,6 @@ import java.util.List;
 @Table(name = "users")
 @Data
 @EntityListeners(AuditingEntityListener.class)
-@ToString(exclude = "bookings")
 @RequiredArgsConstructor
 public class AppUser implements UserDetails {
 
