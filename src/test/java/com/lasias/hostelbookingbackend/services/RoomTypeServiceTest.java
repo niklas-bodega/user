@@ -1,10 +1,5 @@
 package com.lasias.hostelbookingbackend.services;
 
-import com.lasias.hostelbookingbackend.dtos.AvailableRoomsDTO;
-import com.lasias.hostelbookingbackend.dtos.RoomTypeDTO;
-import com.lasias.hostelbookingbackend.enums.RoomBadge;
-import com.lasias.hostelbookingbackend.models.RoomType;
-import com.lasias.hostelbookingbackend.repositories.RoomTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

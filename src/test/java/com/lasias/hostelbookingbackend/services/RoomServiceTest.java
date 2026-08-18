@@ -1,10 +1,5 @@
 package com.lasias.hostelbookingbackend.services;
 
-import com.lasias.hostelbookingbackend.dtos.RoomDTO;
-import com.lasias.hostelbookingbackend.exceptions.RoomNotFoundException;
-import com.lasias.hostelbookingbackend.models.RoomEntity;
-import com.lasias.hostelbookingbackend.models.RoomType;
-import com.lasias.hostelbookingbackend.repositories.RoomRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -2,13 +2,10 @@ package com.lasias.hostelbookingbackend.services;
 import com.lasias.hostelbookingbackend.dtos.AuthRequestDTO;
 import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
 import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
-import com.lasias.hostelbookingbackend.enums.BookingStatus;
 import com.lasias.hostelbookingbackend.models.AppUser;
 import com.lasias.hostelbookingbackend.enums.AuthProvider;
 import com.lasias.hostelbookingbackend.dtos.UpdateUserDTO;
-import com.lasias.hostelbookingbackend.models.BookingEntity;
 import com.lasias.hostelbookingbackend.repositories.AppUserRepository;
-import com.lasias.hostelbookingbackend.repositories.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -32,7 +29,6 @@ public class AppUserService {
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final BookingRepository bookingRepository;
 
 
     // register user through OAuth2 providers
@@ -158,8 +154,8 @@ public class AppUserService {
             log.error("Unable to delete user, User not found");
             throw new IllegalArgumentException("Unable to delete user, User not found");
         }
-
-        if(bookingRepository.existsByUser_IdAndStatusInAndCheckOutDateAfter(
+        //todo anropa booking mikroservice
+        /*if(bookingRepository.existsByUser_IdAndStatusInAndCheckOutDateAfter(
                 user.getId(),
                 List.of(
                         BookingStatus.CONFIRMED,
@@ -178,6 +174,8 @@ public class AppUserService {
                 .toList();
 
         bookingRepository.saveAll(bookings);
+
+         */
 
         log.info("User deleted: {}", user.getEmail());
         appUserRepository.delete(user);
