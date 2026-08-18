@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -33,13 +34,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         Cookie[] cookies = request.getCookies() != null ? request.getCookies() : null;
         Cookie jwtCookie = cookies != null ? Arrays.stream(cookies).filter(cookie -> cookie.getName().equals("jwt")).findFirst().orElse(null) : null;
+        String bearerToken = request.getHeader("Authorization");
 
-        if (jwtCookie == null){
-            log.info("No JWT cookie found when authenticating user");
-            filterChain.doFilter(request, response);
-            return;
+
+        String jwt;
+        if (jwtCookie == null) {
+            if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                jwt = bearerToken.substring(7);
+            }else {
+                log.info("No JWT cookie or bearer token found when authenticating user");
+                filterChain.doFilter(request, response);
+                return;
+            }
+        } else {
+            jwt = jwtCookie.getValue();
         }
-        String jwt = jwtCookie.getValue();
         final String email;
         final LocalDateTime issuedAt;
 
@@ -52,7 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     LocalDateTime denyTokensPriorTo = user.get().getDenyTokensPriorTo();
                     if (denyTokensPriorTo != null) {
                         log.info(denyTokensPriorTo.toString());
-                    }else{
+                    } else {
                         log.info("User has no 'denyTokensPriorTo' date");
                     }
                     boolean isTokenValid = denyTokensPriorTo == null ||
@@ -62,14 +71,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.get(), null, user.get().getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         log.info("User authenticated: {}", user.get().getEmail());
-                    }else{
+                    } else {
                         log.error("JWT token issued before the user's 'denyTokensPriorTo' date");
                         filterChain.doFilter(request, response);
                         return;
                     }
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Invalid JWT token received: {}", e.getMessage());
         }
         filterChain.doFilter(request, response);
