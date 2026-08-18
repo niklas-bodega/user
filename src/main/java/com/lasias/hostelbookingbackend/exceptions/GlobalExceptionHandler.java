@@ -24,13 +24,7 @@ public class GlobalExceptionHandler {
                 .body(exception.getMessage());
     }
 
-    @ExceptionHandler(NoAvailableRoomException.class)
-    public ResponseEntity<String> handleNoAvailableRoomException(NoAvailableRoomException exception) {
-        log.error("No available room exception: {}", exception.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(exception.getMessage());
-    }
+
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<String> handleExpiredJwtException(ExpiredJwtException exception) {
@@ -56,11 +50,5 @@ public class GlobalExceptionHandler {
                 .body(errors);
     }
 
-    @ExceptionHandler(RoomNotFoundException.class)
-    public ResponseEntity<String> handleRoomNotFoundException(RoomNotFoundException exception) {
-        log.error("Room not found: {}", exception.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(exception.getMessage());
-    }
+
 }

@@ -153,8 +153,12 @@ public class AppUserService {
             log.error("Unable to delete user, User not found");
             throw new IllegalArgumentException("Unable to delete user, User not found");
         }
-        //todo anropa booking mikroservice
-        /*if(bookingRepository.existsByUser_IdAndStatusInAndCheckOutDateAfter(
+
+
+
+        //todo anropa booking mikroservice gällande om det finns aktiva bokningar
+        /*
+        if(bookingRepository.existsByUser_IdAndStatusInAndCheckOutDateAfter(
                 user.getId(),
                 List.of(
                         BookingStatus.CONFIRMED,
@@ -165,7 +169,11 @@ public class AppUserService {
             log.error("Unable to delete user, User has bookings");
             throw new IllegalArgumentException("Unable to delete user, User has bookings");
         }
+*/
 
+        //todo anropa bookingservice för att rensa bort användarid från historiska bokningar.
+
+        /*
         List<BookingEntity> bookings = bookingRepository
                 .findByUser(user)
                 .stream()
