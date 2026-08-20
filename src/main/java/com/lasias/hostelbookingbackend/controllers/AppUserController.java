@@ -4,8 +4,6 @@ package com.lasias.hostelbookingbackend.controllers;
 
 import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
 import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
-import com.lasias.hostelbookingbackend.dtos.UserPrincipal;
-import com.lasias.hostelbookingbackend.models.AppUser;
 import com.lasias.hostelbookingbackend.dtos.UpdateUserDTO;
 import com.lasias.hostelbookingbackend.services.AppUserService;
 import jakarta.validation.Valid;
@@ -30,8 +28,8 @@ public class AppUserController {
     }
 
     @PatchMapping
-    public ResponseEntity<String> updateUser(@RequestBody UpdateUserDTO updateUserDTO, @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        ResponseCookie jwtCookie = appUserService.updateUser(updateUserDTO, user);
+    public ResponseEntity<String> updateUser(@RequestBody UpdateUserDTO updateUserDTO, @AuthenticationPrincipal Long userId) {
+        ResponseCookie jwtCookie = appUserService.updateUser(updateUserDTO, userId);
         if (jwtCookie != null) {
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,jwtCookie.toString()).build();
         }
@@ -39,13 +37,13 @@ public class AppUserController {
     }
 
     @GetMapping
-    public ResponseEntity<UserInformationDTO> provideUserDetails(@AuthenticationPrincipal AppUser user) {
-        return ResponseEntity.ok(appUserService.provideUserDetails(user));
+    public ResponseEntity<UserInformationDTO> provideUserDetails(@AuthenticationPrincipal Long userId) {
+        return ResponseEntity.ok(appUserService.provideUserDetails(userId));
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteUser(@AuthenticationPrincipal AppUser user) {
-        appUserService.deleteMe(user);
+    public ResponseEntity<String> deleteUser(@AuthenticationPrincipal Long userId) {
+        appUserService.deleteMe(userId);
         return ResponseEntity.ok().build();
     }
 

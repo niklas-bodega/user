@@ -1,11 +1,8 @@
 package com.lasias.hostelbookingbackend.services;
 
-import com.lasias.hostelbookingbackend.dtos.AuthRequestDTO;
-import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
-import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
+import com.lasias.hostelbookingbackend.dtos.*;
 import com.lasias.hostelbookingbackend.models.AppUser;
 import com.lasias.hostelbookingbackend.enums.AuthProvider;
-import com.lasias.hostelbookingbackend.dtos.UpdateUserDTO;
 import com.lasias.hostelbookingbackend.repositories.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,12 +105,11 @@ public class AppUserService {
         return passwordEncoder.encode(password);
     }
 
-    public ResponseCookie updateUser(UpdateUserDTO updateUserDTO, AppUser user) {
+    public ResponseCookie updateUser(UpdateUserDTO updateUserDTO, Long userId) {
         ResponseCookie newCookie = null;
-        if (user == null) {
-            log.error("User not found when updating user");
-            throw new IllegalArgumentException("User not found");
-        }
+
+        AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found."));
+
         if (updateUserDTO.name() != null) {
             String newName = updateUserDTO.name();
             if (newName.length() >= 3 && newName.length() <= 50) {
@@ -148,12 +144,8 @@ public class AppUserService {
     }
 
 
-    public void deleteMe(AppUser user) {
-        if (user == null) {
-            log.error("Unable to delete user, User not found");
-            throw new IllegalArgumentException("Unable to delete user, User not found");
-        }
-
+    public void deleteMe(Long userId) {
+        AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("Unable to delete user, User not found"));
 
         //todo anropa booking mikroservice gällande om det finns aktiva bokningar
         // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
@@ -179,24 +171,19 @@ public class AppUserService {
                 .retrieve()
                 .body(boolean.class);
 
-
-
-
             log.info("User deleted: {}", user.getEmail());
             appUserRepository.delete(user);
 
     }
 
-    public UserInformationDTO provideUserDetails(AppUser user) {
-        if (user == null) {
-            log.error("User not found when retrieving user details");
-            throw new IllegalArgumentException("User not found");
-        }
+    public UserInformationDTO provideUserDetails(Long userId) {
+        AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found."));
         log.info("User details retrieved: {}", user.getEmail());
         return new UserInformationDTO(user.getEmail(), user.getName(), user.getRole(), user.getCreatedAt(), (user.getPassword() != null));
     }
 
-    public ResponseEntity<String> logout(AppUser user) {
+    public ResponseEntity<String> logout(Long userId) {
+        AppUser user = appUserRepository.findById(userId).orElse(null);
         if (user == null) {
             log.error("User not found when logging out");
             throw new IllegalArgumentException("User not found");
@@ -208,7 +195,12 @@ public class AppUserService {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
     }
 
-    public ResponseEntity<String> logoutAllDevices(AppUser user) {
+    public ResponseEntity<String> logoutAllDevices(Long userId) {
+        AppUser user = appUserRepository.findById(userId).orElse(null);
+        if (user == null) {
+            log.error("User not found when logging out all devices");
+            throw new IllegalArgumentException("User not found");
+        }
         user.setDenyTokensPriorTo(LocalDateTime.now(ZoneId.of("Europe/Copenhagen")).truncatedTo(ChronoUnit.SECONDS));
         appUserRepository.save(user);
         ResponseCookie cookie = jwtService.createJwtCookie(user.getId(), true);

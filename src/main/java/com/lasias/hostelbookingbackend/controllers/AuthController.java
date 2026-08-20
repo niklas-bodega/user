@@ -1,7 +1,6 @@
 package com.lasias.hostelbookingbackend.controllers;
 
 import com.lasias.hostelbookingbackend.dtos.AuthRequestDTO;
-import com.lasias.hostelbookingbackend.models.AppUser;
 import com.lasias.hostelbookingbackend.services.AppUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +23,13 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<String> logout(@AuthenticationPrincipal AppUser user) {
-        return appUserService.logout(user);
+    public ResponseEntity<String> logout(@AuthenticationPrincipal Long userId) {
+        return appUserService.logout(userId);
     }
 
     @GetMapping("/logout-all-devices")
-    public ResponseEntity<String> logoutAllDevices(@AuthenticationPrincipal AppUser user){
-        return appUserService.logoutAllDevices(user);
+    public ResponseEntity<String> logoutAllDevices(@AuthenticationPrincipal Long userId){
+        return appUserService.logoutAllDevices(userId);
     }
 
 }

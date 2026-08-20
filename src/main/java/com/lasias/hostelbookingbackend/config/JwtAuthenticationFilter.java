@@ -1,6 +1,5 @@
 package com.lasias.hostelbookingbackend.config;
 
-import com.lasias.hostelbookingbackend.dtos.UserPrincipal;
 import com.lasias.hostelbookingbackend.repositories.AppUserRepository;
 import com.lasias.hostelbookingbackend.services.JwtService;
 import jakarta.servlet.FilterChain;
@@ -30,12 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         Cookie[] cookies = request.getCookies() != null ? request.getCookies() : null;
         Cookie jwtCookie = cookies != null ? Arrays.stream(cookies).filter(cookie -> cookie.getName().equals("jwt")).findFirst().orElse(null) : null;
         String bearerToken = request.getHeader("Authorization");
-
-
         String jwt;
         if (jwtCookie == null) {
             if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -50,8 +46,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         final Long userId;
         //final LocalDateTime issuedAt;
-
-
         try {
             userId = jwtService.extractUserId(jwt);
             //issuedAt = jwtService.extractIAT(jwt);
@@ -68,10 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                   //  if (isTokenValid) {
                         List<GrantedAuthority> authorities = jwtService.extractAuthorities(jwt);
-                        String userEmail = jwtService.extractEmail(jwt);
-                        UserPrincipal userPrincipal = new UserPrincipal(userId, userEmail);
 
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userPrincipal, null, authorities);
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userId, null, authorities);
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         log.info("User with id {} authenticated.", userId);
                  /*   } else {

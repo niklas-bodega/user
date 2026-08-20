@@ -1,8 +1,11 @@
 package com.lasias.hostelbookingbackend.services;
 
+import com.lasias.hostelbookingbackend.models.AppUser;
+import com.lasias.hostelbookingbackend.repositories.AppUserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,18 +18,20 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
+    private final AppUserRepository appUserRepository;
 
     @Value("${app.jwt.secret}")
     private String secretKey;
 
     public String generateToken(Long userId){
         int expiryTime = 86400000;
+        AppUser user = appUserRepository.findById(userId).orElseThrow();
         return Jwts.builder()
                 .setSubject(userId.toString())
                 //todo rensa bort eller implementera
-                .claim("role", List.of("ROLE_USER"))
-                .claim("email", "email@website.se")
+                .claim("role", "ROLE_"+user.getRole())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiryTime))
                 .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))

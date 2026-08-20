@@ -17,7 +17,7 @@ public class HostelBookingBackendApplication {
 
 	@Bean
     ApplicationRunner jwtTestRunner(JwtService jwtService) {
-		return args -> System.out.println("JWT for development: \n"+jwtService.generateToken(2L));
+		return args -> System.out.println("JWT for development: \n"+jwtService.generateToken(1L));
 	}
 
 }
