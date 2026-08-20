@@ -144,7 +144,9 @@ public class AppUserService {
     }
 
 
-    public void deleteMe(Long userId) {
+    public void deleteMe(CustomPrincipal principal) {
+        Long userId = principal.userID();
+        String bearerToken = principal.jwtBearerToken();
         AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("Unable to delete user, User not found"));
 
         //todo anropa booking mikroservice gällande om det finns aktiva bokningar
@@ -152,7 +154,7 @@ public class AppUserService {
         boolean userHasActiveBooking = Boolean.TRUE.equals(bookingRestClient
                 .get()
                 .uri("/api/bookings/user-has-upcomming-bookings/{id}", user.getId())
-                .header("Authorization", jwtService.createBearerToken(user.getEmail()))
+                .header("Authorization", bearerToken)
                 .retrieve()
                 .body(boolean.class));
 
@@ -167,7 +169,7 @@ public class AppUserService {
         // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
         bookingRestClient.get()
                 .uri("/api/bookings/remove-userid-from-passed-bookings/{id}", user.getId())
-                .header("Authorization", jwtService.createBearerToken(user.getEmail()))
+                .header("Authorization", bearerToken)
                 .retrieve()
                 .body(boolean.class);
 

@@ -1,5 +1,6 @@
 package com.lasias.hostelbookingbackend.config;
 
+import com.lasias.hostelbookingbackend.dtos.CustomPrincipal;
 import com.lasias.hostelbookingbackend.repositories.AppUserRepository;
 import com.lasias.hostelbookingbackend.services.JwtService;
 import jakarta.servlet.FilterChain;
@@ -60,9 +61,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 */
 
                   //  if (isTokenValid) {
+                        CustomPrincipal principal = new CustomPrincipal(userId,bearerToken);
+
                         List<GrantedAuthority> authorities = jwtService.extractAuthorities(jwt);
 
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(principal, null, authorities);
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         log.info("User with id {} authenticated.", userId);
                  /*   } else {

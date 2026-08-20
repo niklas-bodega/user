@@ -2,6 +2,7 @@ package com.lasias.hostelbookingbackend.controllers;
 
 
 
+import com.lasias.hostelbookingbackend.dtos.CustomPrincipal;
 import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
 import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
 import com.lasias.hostelbookingbackend.dtos.UpdateUserDTO;
@@ -28,8 +29,8 @@ public class AppUserController {
     }
 
     @PatchMapping
-    public ResponseEntity<String> updateUser(@RequestBody UpdateUserDTO updateUserDTO, @AuthenticationPrincipal Long userId) {
-        ResponseCookie jwtCookie = appUserService.updateUser(updateUserDTO, userId);
+    public ResponseEntity<String> updateUser(@RequestBody UpdateUserDTO updateUserDTO, @AuthenticationPrincipal CustomPrincipal principal) {
+        ResponseCookie jwtCookie = appUserService.updateUser(updateUserDTO, principal.userID());
         if (jwtCookie != null) {
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,jwtCookie.toString()).build();
         }
@@ -37,13 +38,13 @@ public class AppUserController {
     }
 
     @GetMapping
-    public ResponseEntity<UserInformationDTO> provideUserDetails(@AuthenticationPrincipal Long userId) {
-        return ResponseEntity.ok(appUserService.provideUserDetails(userId));
+    public ResponseEntity<UserInformationDTO> provideUserDetails(@AuthenticationPrincipal CustomPrincipal principal) {
+        return ResponseEntity.ok(appUserService.provideUserDetails(principal.userID()));
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteUser(@AuthenticationPrincipal Long userId) {
-        appUserService.deleteMe(userId);
+    public ResponseEntity<String> deleteUser(@AuthenticationPrincipal CustomPrincipal principal) {
+        appUserService.deleteMe(principal);
         return ResponseEntity.ok().build();
     }
 
