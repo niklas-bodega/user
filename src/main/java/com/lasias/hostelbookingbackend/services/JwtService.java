@@ -12,6 +12,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
@@ -23,36 +25,38 @@ public class JwtService {
     private final AppUserRepository appUserRepository;
 
     @Value("${app.jwt.secret}")
-    private String secretKey;
+    private String rawKey;
+    private final SecretKey secretKey = Keys.hmacShaKeyFor(rawKey.getBytes(StandardCharsets.UTF_8));
 
     public String generateToken(Long userId){
         int expiryTime = 86400000;
         AppUser user = appUserRepository.findById(userId).orElseThrow();
-        return Jwts.builder()
-                .setSubject(userId.toString())
+        return Jwts.builder().
+                subject(userId.toString())
                 //todo rensa bort eller implementera
-                .claim("role", "ROLE_"+user.getRole())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiryTime))
-                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                .claim("role", "ROLE_" + user.getRole())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiryTime))
+                .signWith(secretKey)
                 .compact();
     }
 
     public Long extractUserId(String token){
-        return Long.parseLong(Jwts.parserBuilder()
-                .setSigningKey(secretKey.getBytes())
+        return Long.parseLong(Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject());
+
     }
 
     public List<GrantedAuthority> extractAuthorities(String token){
-        String role = Jwts.parserBuilder()
-                .setSigningKey(secretKey.getBytes())
+        String role = Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .get("role", String.class);
 
         if (role == null || role.isBlank()){
@@ -86,16 +90,4 @@ public class JwtService {
         return "Bearer " + jwt;
     }
 
-    public LocalDateTime extractIAT(String jwt) {
-        return LocalDateTime.ofInstant(Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build().parseClaimsJws(jwt).getBody().getIssuedAt().toInstant(), java.time.ZoneId.systemDefault());
-    }
-
-    public String extractEmail(String jwt) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey.getBytes())
-                .build()
-                .parseClaimsJws(jwt)
-                .getBody()
-                .get("email", String.class);
-    }
 }
