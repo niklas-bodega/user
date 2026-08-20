@@ -5,10 +5,14 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class JwtService {
@@ -16,27 +20,47 @@ public class JwtService {
     @Value("${app.jwt.secret}")
     private String secretKey;
 
-    public String generateToken(String email){
+    public String generateToken(Long userId){
         int expiryTime = 86400000;
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId.toString())
+                //todo rensa bort eller implementera
+                .claim("role", List.of("ROLE_USER"))
+                .claim("email", "email@website.se")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiryTime))
                 .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .compact();
     }
 
-    public String extractEmail(String token){
-        return Jwts.parserBuilder()
+    public Long extractUserId(String token){
+        return Long.parseLong(Jwts.parserBuilder()
                 .setSigningKey(secretKey.getBytes())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();
+                .getSubject());
     }
 
-    public Cookie createJwtCookie(String email){
-        Cookie cookie = new Cookie("jwt",generateToken(email));
+    public List<GrantedAuthority> extractAuthorities(String token){
+        String role = Jwts.parserBuilder()
+                .setSigningKey(secretKey.getBytes())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
+
+        if (role == null || role.isBlank()){
+            return Collections.emptyList();
+        }
+        String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        return List.of(new SimpleGrantedAuthority(authority));
+    }
+
+
+    public Cookie createJwtCookie(Long userId){
+        Cookie cookie = new Cookie("jwt",generateToken(userId));
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24);
@@ -44,8 +68,8 @@ public class JwtService {
         return cookie;
     }
 
-    public ResponseCookie createJwtCookie(String email, boolean logoutCookie){
-        return ResponseCookie.from("jwt", logoutCookie ? "" : generateToken(email))
+    public ResponseCookie createJwtCookie(Long userId, boolean logoutCookie){
+        return ResponseCookie.from("jwt", logoutCookie ? "" : generateToken(userId))
                 .httpOnly(true)
                 .path("/")
                 .maxAge(logoutCookie ? 0 : (60 * 60 * 24))
@@ -59,5 +83,14 @@ public class JwtService {
 
     public LocalDateTime extractIAT(String jwt) {
         return LocalDateTime.ofInstant(Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build().parseClaimsJws(jwt).getBody().getIssuedAt().toInstant(), java.time.ZoneId.systemDefault());
+    }
+
+    public String extractEmail(String jwt) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey.getBytes())
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody()
+                .get("email", String.class);
     }
 }

@@ -4,6 +4,7 @@ package com.lasias.hostelbookingbackend.controllers;
 
 import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
 import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
+import com.lasias.hostelbookingbackend.dtos.UserPrincipal;
 import com.lasias.hostelbookingbackend.models.AppUser;
 import com.lasias.hostelbookingbackend.dtos.UpdateUserDTO;
 import com.lasias.hostelbookingbackend.services.AppUserService;
@@ -29,7 +30,7 @@ public class AppUserController {
     }
 
     @PatchMapping
-    public ResponseEntity<String> updateUser(@RequestBody UpdateUserDTO updateUserDTO, @AuthenticationPrincipal AppUser user) {
+    public ResponseEntity<String> updateUser(@RequestBody UpdateUserDTO updateUserDTO, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         ResponseCookie jwtCookie = appUserService.updateUser(updateUserDTO, user);
         if (jwtCookie != null) {
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,jwtCookie.toString()).build();

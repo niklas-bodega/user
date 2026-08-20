@@ -62,9 +62,8 @@ public class AppUserService {
         user.setRole("USER");
         appUserRepository.save(user);
         log.info("New user registered: {}", user.getEmail());
-
-        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(), false);
-        return cookie;
+        Long userId = appUserRepository.findByEmail(newUser.email()).get().getId();
+        return jwtService.createJwtCookie(userId, false);
     }
 
 
@@ -83,7 +82,7 @@ public class AppUserService {
         AppUser user = appUserRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found."));
         if (validPassword(password, user.getPassword())) {
             log.info("User logged in: {}", user.getEmail());
-            return jwtService.createJwtCookie(user.getEmail(), false);
+            return jwtService.createJwtCookie(user.getId(), false);
         }
         log.error("Login failed, invalid credentials");
         throw new IllegalArgumentException("Invalid credentials");
@@ -130,7 +129,7 @@ public class AppUserService {
                 throw new IllegalArgumentException("Invalid email format");
             }
             user.setEmail(newEmail);
-            newCookie = jwtService.createJwtCookie(newEmail, false);
+            newCookie = jwtService.createJwtCookie(user.getId(), false);
         }
         if (updateUserDTO.password() != null) {
             // if the user is updating their password, check if the current password is correct. If there is no current password, the user is updating their password for the first time.
@@ -202,7 +201,7 @@ public class AppUserService {
             log.error("User not found when logging out");
             throw new IllegalArgumentException("User not found");
         }
-        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(), true);
+        ResponseCookie cookie = jwtService.createJwtCookie(user.getId(), true);
 
         SecurityContextHolder.clearContext();
         log.info("User logged out: {}", user.getEmail());
@@ -212,10 +211,14 @@ public class AppUserService {
     public ResponseEntity<String> logoutAllDevices(AppUser user) {
         user.setDenyTokensPriorTo(LocalDateTime.now(ZoneId.of("Europe/Copenhagen")).truncatedTo(ChronoUnit.SECONDS));
         appUserRepository.save(user);
-        ResponseCookie cookie = jwtService.createJwtCookie(user.getEmail(), true);
+        ResponseCookie cookie = jwtService.createJwtCookie(user.getId(), true);
 
         SecurityContextHolder.clearContext();
         log.info("User logged out all devices: {} and tokens issued previously will be rejected.", user.getEmail());
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
+    }
+
+    public Long userIdFromEmail(String email) {
+        return appUserRepository.findByEmail(email).map(AppUser::getId).orElseThrow(() -> new UsernameNotFoundException("User not found."));
     }
 }

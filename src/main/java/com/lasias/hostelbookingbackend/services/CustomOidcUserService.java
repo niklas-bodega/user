@@ -42,5 +42,4 @@ public class CustomOidcUserService extends OidcUserService {
         }
         return oidcUser;
     }
-
 }
