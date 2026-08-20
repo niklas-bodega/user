@@ -153,7 +153,7 @@ public class AppUserService {
         // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
         boolean userHasActiveBooking = Boolean.TRUE.equals(bookingRestClient
                 .get()
-                .uri("/api/bookings/user-has-upcomming-bookings/{id}", user.getId())
+                .uri("/api/bookings/active/{id}", user.getId())
                 .header("Authorization", bearerToken)
                 .retrieve()
                 .body(boolean.class));
@@ -168,7 +168,7 @@ public class AppUserService {
         // //todo anropa bookingservice för att rensa bort användarid från historiska bokningar.
         // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
         bookingRestClient.get()
-                .uri("/api/bookings/remove-userid-from-passed-bookings/{id}", user.getId())
+                .uri("/api/bookings/active/{id}", user.getId())
                 .header("Authorization", bearerToken)
                 .retrieve()
                 .body(boolean.class);

@@ -45,22 +45,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt = jwtCookie.getValue();
         }
         final Long userId;
-        //final LocalDateTime issuedAt;
         try {
             userId = jwtService.extractUserId(jwt);
-            //issuedAt = jwtService.extractIAT(jwt);
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    /*LocalDateTime denyTokensPriorTo = user.get().getDenyTokensPriorTo();
-                    if (denyTokensPriorTo != null) {
-                        log.info(denyTokensPriorTo.toString());
-                    } else {
-                        log.info("User has no 'denyTokensPriorTo' date");
-                    }
-                    boolean isTokenValid = denyTokensPriorTo == null ||
-                            !issuedAt.isBefore(denyTokensPriorTo.truncatedTo(ChronoUnit.SECONDS));
-*/
 
-                  //  if (isTokenValid) {
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
                         CustomPrincipal principal = new CustomPrincipal(userId,bearerToken);
 
                         List<GrantedAuthority> authorities = jwtService.extractAuthorities(jwt);
@@ -68,11 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(principal, null, authorities);
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         log.info("User with id {} authenticated.", userId);
-                 /*   } else {
-                        log.error("JWT token issued before the user's 'denyTokensPriorTo' date");
-                        filterChain.doFilter(request, response);
-                        return;
-                    }*/
 
             }
         } catch (Exception e) {

@@ -14,7 +14,7 @@ public class MicroserviceRestClientConfig {
     @Bean
     public RestClient bookingRestClient() {
         return RestClient.builder()
-                .baseUrl("bookingServiceUrl")
+                .baseUrl(bookingServiceUrl)
                 .defaultHeader("X-Internal-Call", "true")
                 .build();
     }
