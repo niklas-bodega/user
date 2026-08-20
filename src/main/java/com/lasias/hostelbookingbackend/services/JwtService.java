@@ -25,8 +25,7 @@ public class JwtService {
     private final AppUserRepository appUserRepository;
 
     @Value("${app.jwt.secret}")
-    private String rawKey;
-    private final SecretKey secretKey = Keys.hmacShaKeyFor(rawKey.getBytes(StandardCharsets.UTF_8));
+    private String secretKey;
 
     public String generateToken(Long userId){
         int expiryTime = 86400000;
@@ -37,13 +36,13 @@ public class JwtService {
                 .claim("role", "ROLE_" + user.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiryTime))
-                .signWith(secretKey)
+                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
                 .compact();
     }
 
     public Long extractUserId(String token){
         return Long.parseLong(Jwts.parser()
-                .verifyWith(secretKey)
+                .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
@@ -53,7 +52,7 @@ public class JwtService {
 
     public List<GrantedAuthority> extractAuthorities(String token){
         String role = Jwts.parser()
-                .verifyWith(secretKey)
+                .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
