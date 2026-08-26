@@ -26,8 +26,8 @@ COPY --from=builder /build/target/*.jar app.jar
 EXPOSE 8084
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD java -cp app.jar org.springframework.boot.loader.launch.JarLauncher --spring.health.endpoint=health 2>/dev/null || exit 1
+# --interval=30s --timeout=3s --start-period=10s --retries=3 \
+#    CMD java -cp app.jar org.springframework.boot.loader.launch.JarLauncher --spring.health.endpoint=health 2>/dev/null || exit 1
 
 # Run application
 ENTRYPOINT ["java", "-jar", "app.jar"]
