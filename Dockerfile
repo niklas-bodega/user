@@ -1,5 +1,5 @@
 # Multi-stage build for Java 21 Spring Boot application
-FROM eclipse-temurin:21-jdk AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
@@ -11,23 +11,18 @@ COPY pom.xml .
 RUN mvn dependency:go-offline -q
 
 # Copy source code and build
-COPY src/ src/
-RUN mvn clean package -q -DskipTests
+COPY src ./src
+RUN mvn clean package -DskipTests -B
 
-# Runtime stage
-FROM eclipse-temurin:21-jre
+# Best practice: Skapa en non-root användare för säkerhet
+RUN addgroup --system spring && adduser --system --ingroup spring spring
+USER spring:spring
 
-WORKDIR /app
+# Kopiera JAR-filen från byggsteget och ge rättigheter till den nya användaren
+COPY --from=builder --chown=spring:spring /build/target/*.jar app.jar
 
-# Copy JAR from builder
-COPY --from=builder /build/target/*.jar app.jar
-
-# Expose port
+# Exponera porten
 EXPOSE 8084
 
-# Health check
-# --interval=30s --timeout=3s --start-period=10s --retries=3 \
-#    CMD java -cp app.jar org.springframework.boot.loader.launch.JarLauncher --spring.health.endpoint=health 2>/dev/null || exit 1
-
-# Run application
+# Starta applikationen
 ENTRYPOINT ["java", "-jar", "app.jar"]
