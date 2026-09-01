@@ -161,20 +161,13 @@ public class AppUserService {
         if (userHasActiveBooking) {
             log.error("Unable to delete user, User has bookings");
             throw new IllegalArgumentException("Unable to delete user, User has bookings");
+        }else{
+            log.info("User deleted: {}", user.getEmail());
+            appUserRepository.delete(user);
         }
 
 
 
-        // //todo anropa bookingservice för att rensa bort användarid från historiska bokningar.
-        // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
-        bookingRestClient.get()
-                .uri("/api/bookings/active/{id}", user.getId())
-                .header("Authorization", bearerToken)
-                .retrieve()
-                .body(boolean.class);
-
-            log.info("User deleted: {}", user.getEmail());
-            appUserRepository.delete(user);
 
     }
 

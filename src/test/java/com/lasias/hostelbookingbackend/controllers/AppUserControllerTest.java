@@ -1,5 +1,7 @@
 package com.lasias.hostelbookingbackend.controllers;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.lasias.hostelbookingbackend.dtos.RegisterNewUserDTO;
 import com.lasias.hostelbookingbackend.dtos.UserInformationDTO;
 import com.lasias.hostelbookingbackend.models.AppUser;
@@ -8,28 +10,48 @@ import com.lasias.hostelbookingbackend.repositories.AppUserRepository;
 import com.lasias.hostelbookingbackend.services.AppUserService;
 import com.lasias.hostelbookingbackend.services.JwtService;
 import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
+@WireMockTest(httpPort = 8081)
 class AppUserControllerTest {
-    //todo laga test
-    /*
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("booking.service.url", () -> "http://localhost:8081");
+    }
+
     private final String USER_FULL_NAME = "John doe";
     private final String EMAIL = "john.doe@email.com";
     private final String PASSWORD = "JohnDoesPassword!123";
+    @Autowired
+    private RestClient bookingRestClient;
 
+    @Value("${booking.service.url}")
+    private String bookingServiceUrl;
+
+    @Autowired
+    private RestClient.Builder restClientBuilder;
     @Autowired
     private TestRestTemplate restTemplate;
     @Autowired
@@ -60,7 +82,6 @@ class AppUserControllerTest {
 
     @Test
     void registerUserDeniesFrontendFromAddingDuplicateUsersWithSameInfoAndSuccesfullyAddsNewUsers() {
-
         RegisterNewUserDTO newUserWithAlreadyRegisteredInformationDTO = new RegisterNewUserDTO(USER_FULL_NAME,EMAIL,PASSWORD);
         ResponseEntity<String> badRegisterResponse = restTemplate.postForEntity("/api/user/register",newUserWithAlreadyRegisteredInformationDTO,String.class);
         assertEquals(HttpStatus.BAD_REQUEST,badRegisterResponse.getStatusCode());
@@ -134,13 +155,18 @@ class AppUserControllerTest {
         assertNotEquals(unExpectedName,userInformationDTO.name());
         assertEquals(expectedRole,userInformationDTO.role());
         assertNotEquals(unExpectedRole,userInformationDTO.role());
-
-
-
     }
 
     @Test
     void deleteUser() {
+        Long USER_ID = appUserRepository.findByEmail(EMAIL).get().getId();
+
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/bookings/active/"+USER_ID))
+                        .willReturn(WireMock.ok()
+                                .withHeader("Content-Type", "application/json")
+                                .withBody("false")));
+
+
         assertTrue(appUserRepository.existsByEmail(EMAIL));
         HttpHeaders headers = getHttpHeadersWithJwtToken();
         ResponseEntity<String> response = restTemplate.exchange(
@@ -151,17 +177,21 @@ class AppUserControllerTest {
         );
         assertEquals(HttpStatus.OK,response.getStatusCode());
         assertFalse(appUserRepository.existsByEmail(EMAIL));
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/active/" + USER_ID)));
     }
 
 
     private HttpHeaders getHttpHeadersWithJwtToken() {
         // todo ändra till userid från email.
-        String jwtToken = jwtService.generateToken(EMAIL);
+        Long USER_ID = appUserRepository.findByEmail(EMAIL).get().getId();
+        System.out.println(USER_ID);
+        String jwtToken = jwtService.generateToken(USER_ID);
+        System.out.println(jwtToken);
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "jwt="+jwtToken);
         return headers;
     }
 
-*/
+
 
 }

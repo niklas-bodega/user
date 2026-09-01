@@ -29,10 +29,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String jwt;
         Cookie[] cookies = request.getCookies() != null ? request.getCookies() : null;
+
         Cookie jwtCookie = cookies != null ? Arrays.stream(cookies).filter(cookie -> cookie.getName().equals("jwt")).findFirst().orElse(null) : null;
         String bearerToken = request.getHeader("Authorization");
-        String jwt;
+
         if (jwtCookie == null) {
             if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
                 jwt = bearerToken.substring(7);
@@ -43,6 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } else {
             jwt = jwtCookie.getValue();
+            bearerToken = "Bearer " + jwt;
         }
         final Long userId;
         try {
