@@ -153,7 +153,7 @@ public class AppUserService {
         // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
         boolean userHasActiveBooking = Boolean.TRUE.equals(bookingRestClient
                 .get()
-                .uri("/api/bookings/active/{id}", user.getId())
+                .uri("/api/bookings/active")
                 .header("Authorization", bearerToken)
                 .retrieve()
                 .body(boolean.class));
