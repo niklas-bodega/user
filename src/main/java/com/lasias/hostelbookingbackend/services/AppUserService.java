@@ -149,8 +149,6 @@ public class AppUserService {
         String bearerToken = principal.jwtBearerToken();
         AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("Unable to delete user, User not found"));
 
-        //todo anropa booking mikroservice gällande om det finns aktiva bokningar
-        // TODO SE TILL ATT DET FUNGERAR. / FÅ DET ATT FUNGERA.
         boolean userHasActiveBooking = Boolean.TRUE.equals(bookingRestClient
                 .get()
                 .uri("/api/bookings/active")
