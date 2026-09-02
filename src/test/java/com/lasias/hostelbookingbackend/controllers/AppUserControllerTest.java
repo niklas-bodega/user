@@ -159,9 +159,7 @@ class AppUserControllerTest {
 
     @Test
     void deleteUser() {
-        Long USER_ID = appUserRepository.findByEmail(EMAIL).get().getId();
-
-        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/bookings/active/"+USER_ID))
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/bookings/active"))
                         .willReturn(WireMock.ok()
                                 .withHeader("Content-Type", "application/json")
                                 .withBody("false")));
@@ -177,7 +175,7 @@ class AppUserControllerTest {
         );
         assertEquals(HttpStatus.OK,response.getStatusCode());
         assertFalse(appUserRepository.existsByEmail(EMAIL));
-        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/active/" + USER_ID)));
+        WireMock.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/active")));
     }
 
 
