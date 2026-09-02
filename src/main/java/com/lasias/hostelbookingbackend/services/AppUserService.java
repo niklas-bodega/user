@@ -157,7 +157,6 @@ public class AppUserService {
                 .header("Authorization", bearerToken)
                 .retrieve()
                 .body(boolean.class));
-
         if (userHasActiveBooking) {
             log.error("Unable to delete user, User has bookings");
             throw new IllegalArgumentException("Unable to delete user, User has bookings");
