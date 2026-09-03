@@ -44,9 +44,13 @@ public class AppUserController {
 
     @DeleteMapping
     public ResponseEntity<String> deleteUser(@AuthenticationPrincipal CustomPrincipal principal) {
+
         appUserService.deleteMe(principal);
         return ResponseEntity.ok().build();
     }
 
-    
+    @GetMapping("/exist")
+    public ResponseEntity<String> doesUserExistOrDidTheyDeleteThemSelvesAndTryingToMakeABookingWithStillValidToken(){
+        return ResponseEntity.notFound().build();
+    }
 }

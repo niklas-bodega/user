@@ -47,7 +47,6 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject());
-
     }
 
     public List<GrantedAuthority> extractAuthorities(String token){

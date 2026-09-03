@@ -145,6 +145,7 @@ public class AppUserService {
 
 
     public void deleteMe(CustomPrincipal principal) {
+
         Long userId = principal.userID();
         String bearerToken = principal.jwtBearerToken();
         AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("Unable to delete user, User not found"));
@@ -174,8 +175,8 @@ public class AppUserService {
         return new UserInformationDTO(user.getEmail(), user.getName(), user.getRole(), user.getCreatedAt(), (user.getPassword() != null));
     }
 
-    public ResponseEntity<String> logout(Long userId) {
-        AppUser user = appUserRepository.findById(userId).orElse(null);
+    public ResponseEntity<String> logout(CustomPrincipal principal) {
+        AppUser user = appUserRepository.findById(principal.userID()).orElse(null);
         if (user == null) {
             log.error("User not found when logging out");
             throw new IllegalArgumentException("User not found");
