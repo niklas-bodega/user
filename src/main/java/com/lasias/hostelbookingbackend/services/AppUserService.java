@@ -144,7 +144,6 @@ public class AppUserService {
     }
 
 
-
     public void deleteMe(CustomPrincipal principal) {
 
         Long userId = principal.userID();
