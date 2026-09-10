@@ -81,6 +81,11 @@ class AppUserControllerTest {
     }
 
     @Test
+    void testThatWillPurposelyFail(){
+        assertEquals(1,5);
+    }
+
+    @Test
     void registerUserDeniesFrontendFromAddingDuplicateUsersWithSameInfoAndSuccesfullyAddsNewUsers() {
         RegisterNewUserDTO newUserWithAlreadyRegisteredInformationDTO = new RegisterNewUserDTO(USER_FULL_NAME,EMAIL,PASSWORD);
         ResponseEntity<String> badRegisterResponse = restTemplate.postForEntity("/api/user/register",newUserWithAlreadyRegisteredInformationDTO,String.class);
