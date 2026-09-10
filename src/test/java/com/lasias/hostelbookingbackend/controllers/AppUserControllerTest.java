@@ -80,10 +80,6 @@ class AppUserControllerTest {
         appUserRepository.deleteAll();
     }
 
-    @Test
-    void testThatWillPurposelyFail(){
-        assertEquals(1,5);
-    }
 
     @Test
     void registerUserDeniesFrontendFromAddingDuplicateUsersWithSameInfoAndSuccesfullyAddsNewUsers() {
